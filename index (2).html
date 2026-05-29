@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sky of Wishes & Stars</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--blue:#aee3ff;--lav:#c8b6ff;--gold:#ffe699;--gold2:#ffcf6e}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Manrope',sans-serif;background:#03061a;color:#fff}
+
+/* ── CANVAS ── */
+#sky{position:fixed;inset:0;z-index:0}
+
+/* ── VIGNETTE ── */
+#vig{
+  position:fixed;inset:0;z-index:3;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 42%,transparent 22%,rgba(2,4,18,.28) 62%,rgba(1,2,12,.72) 100%)
+}
+
+/* ── VIEWS ── */
+.view{
+  position:fixed;inset:0;z-index:10;
+  opacity:0;pointer-events:none;
+  transition:opacity .9s cubic-bezier(.4,0,.2,1)
+}
+.view.on{opacity:1;pointer-events:all}
+
+/* ── LANDING ── */
+#land{display:flex;flex-direction:column;align-items:center;justify-content:center}
+#prompt{
+  font-size:clamp(1.25rem,3vw,2rem);font-weight:200;font-style:italic;
+  letter-spacing:.12em;color:rgba(255,255,255,.65);
+  opacity:0;transform:translateY(10px);
+  transition:opacity 1.6s ease,transform 1.6s ease;
+  margin-bottom:3.2rem;text-align:center;user-select:none
+}
+#prompt.up{opacity:1;transform:translateY(0)}
+#inp-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  width:min(88vw,480px);
+  opacity:0;transform:translateY(14px);
+  transition:opacity 1.4s ease,transform 1.4s ease
+}
+#inp-wrap.up{opacity:1;transform:translateY(0)}
+#wInput{
+  width:100%;background:transparent;border:none;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  padding:.7rem 0;
+  font-family:'Manrope',sans-serif;font-weight:300;
+  font-size:clamp(.95rem,2.5vw,1.22rem);
+  color:#fff;outline:none;text-align:center;
+  letter-spacing:.06em;caret-color:var(--blue);
+  transition:border-color .5s ease,text-shadow .4s ease
+}
+#wInput::placeholder{color:rgba(255,255,255,.16);font-style:italic;font-weight:200}
+#wInput:focus{border-bottom-color:rgba(174,227,255,.25)}
+@keyframes inputShake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-6px)}40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}80%{transform:translateX(4px)}
+}
+#wInput.shake{animation:inputShake .32s ease}
+#wHint{
+  margin-top:.65rem;font-size:.67rem;font-weight:200;
+  color:rgba(174,227,255,.38);letter-spacing:.16em;font-style:italic;
+  opacity:0;transition:opacity .8s ease;min-height:1em
+}
+#wHint.on{opacity:1}
+#wCount{
+  margin-top:.4rem;font-size:.58rem;font-weight:200;
+  color:rgba(255,255,255,.1);letter-spacing:.1em;min-height:.9em;
+  transition:color .4s
+}
+#wCount.warn{color:rgba(200,182,255,.42)}
+#shoot-wrap{
+  margin-top:3rem;opacity:0;transition:opacity .9s ease;
+  display:flex;flex-direction:column;align-items:center
+}
+#shoot-wrap.up{opacity:1}
+#shootBtn{
+  background:transparent;border:none;
+  color:rgba(255,255,255,.36);
+  font-family:'Manrope',sans-serif;font-weight:200;
+  font-size:.7rem;letter-spacing:.26em;text-transform:uppercase;
+  cursor:pointer;padding:.5rem 1rem;
+  transition:color .35s,text-shadow .35s,letter-spacing .35s
+}
+#shootBtn:hover{
+  color:rgba(174,227,255,.88);letter-spacing:.3em;
+  text-shadow:0 0 22px rgba(174,227,255,.4)
+}
+
+/* ── GHOST ANIMATION ── */
+#ghost{
+  position:fixed;left:50%;
+  font-family:'Manrope',sans-serif;font-weight:300;
+  font-size:clamp(.95rem,2.5vw,1.22rem);
+  color:#fff;text-align:center;letter-spacing:.06em;
+  pointer-events:none;z-index:250;
+  opacity:0;transform:translateX(-50%);
+  will-change:transform,opacity,filter
+}
+#ghost.fly{animation:wFly 1.6s cubic-bezier(.15,0,.7,1) forwards}
+@keyframes wFly{
+  0%  {opacity:1;filter:blur(0);transform:translateX(-50%) translateY(0) scale(1);text-shadow:0 0 8px rgba(174,227,255,.3)}
+  20% {opacity:.88;filter:blur(0);transform:translateX(-50%) translateY(-10vh) scale(1.03);text-shadow:0 0 30px rgba(174,227,255,.95),0 0 60px rgba(200,182,255,.55)}
+  50% {opacity:.72;filter:blur(.4px);transform:translateX(-50%) translateY(-28vh) scale(.52);text-shadow:0 0 50px rgba(200,182,255,1),0 0 100px rgba(174,227,255,.6)}
+  77% {opacity:.4;filter:blur(3px);transform:translateX(-50%) translateY(-43vh) scale(.16);text-shadow:0 0 80px rgba(255,255,255,1)}
+  100%{opacity:0;filter:blur(14px);transform:translateX(-50%) translateY(-54vh) scale(.015)}
+}
+
+/* ── DIM + FLASH ── */
+#dim{
+  position:fixed;inset:0;z-index:199;pointer-events:none;
+  background:rgba(0,0,8,.55);
+  opacity:0;transition:opacity .4s ease
+}
+#dim.on{opacity:1}
+#flash{
+  position:fixed;inset:0;z-index:200;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 26%,rgba(200,182,255,.22) 0%,rgba(174,227,255,.07) 40%,transparent 70%);
+  opacity:0
+}
+#flash.pop{animation:flashPop 2.2s ease forwards}
+@keyframes flashPop{0%{opacity:0}10%{opacity:1}55%{opacity:.38}100%{opacity:0}}
+
+/* ── FEEDBACK ── */
+#feedback{
+  position:fixed;bottom:5.2rem;left:50%;transform:translateX(-50%);
+  font-size:.67rem;font-weight:200;letter-spacing:.16em;
+  color:rgba(174,227,255,.48);font-style:italic;
+  opacity:0;transition:opacity .5s ease;z-index:40;
+  pointer-events:none;white-space:nowrap
+}
+#feedback.on{opacity:1}
+
+/* ── CONTROLS ── */
+#ctrl{
+  position:fixed;bottom:1.9rem;left:50%;transform:translateX(-50%);
+  z-index:50;display:flex;gap:2rem;align-items:center;
+  opacity:0;pointer-events:none;transition:opacity .7s ease
+}
+#ctrl.up{opacity:1;pointer-events:all}
+.cbtn{
+  background:transparent;border:none;
+  color:rgba(255,255,255,.18);
+  font-family:'Manrope',sans-serif;font-weight:200;
+  font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;
+  cursor:pointer;padding:.4rem .5rem;
+  transition:color .3s;
+  display:flex;align-items:center;gap:.55rem
+}
+.cbtn:hover{color:rgba(255,255,255,.55)}
+.cbtn.on{color:rgba(174,227,255,.62)}
+.cdot{width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.65}
+#nameStarBtn{color:rgba(255,220,100,.2)!important}
+#nameStarBtn:hover{color:rgba(255,220,100,.65)!important}
+#nameStarBtn.on{color:rgba(255,220,100,.75)!important}
+
+/* ── SKY VIEW ── */
+#skyHdr{
+  position:fixed;top:0;left:0;right:0;
+  padding:1.8rem 2rem;
+  background:linear-gradient(to bottom,rgba(3,6,26,.65) 0%,transparent 100%);
+  z-index:25;pointer-events:none;
+  display:flex;align-items:baseline;gap:1rem
+}
+#skyTitle{font-size:1rem;font-weight:200;font-style:italic;letter-spacing:.09em;color:rgba(255,255,255,.42)}
+#skyN{font-size:.57rem;font-weight:200;letter-spacing:.15em;text-transform:uppercase;color:rgba(174,227,255,.25)}
+#starN{font-size:.57rem;font-weight:200;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,220,100,.22)}
+#findMyStarBtn{
+  margin-left:auto;pointer-events:all;
+  background:transparent;border:none;
+  color:rgba(255,220,100,.2);
+  font-family:'Manrope',sans-serif;font-weight:200;
+  font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;
+  cursor:pointer;padding:.3rem .4rem;
+  transition:color .35s,text-shadow .35s
+}
+#findMyStarBtn:hover{color:rgba(255,220,100,.65);text-shadow:0 0 14px rgba(255,200,60,.3)}
+
+#wishBox{position:fixed;inset:0;overflow:hidden}
+.wn{position:absolute;cursor:pointer;transform:translate(-50%,-50%);z-index:15;user-select:none}
+.wt{
+  font-family:'Manrope',sans-serif;font-weight:200;
+  letter-spacing:.04em;line-height:1.65;text-align:center;
+  color:#fff;max-width:175px;
+  transition:opacity .55s ease,text-shadow .55s ease,transform .5s cubic-bezier(.34,1.56,.64,1)
+}
+.wa{
+  display:block;font-size:.57rem;letter-spacing:.12em;
+  color:rgba(174,227,255,.35);margin-top:.42rem;
+  opacity:0;transition:opacity .4s ease;
+  font-style:italic;text-align:center
+}
+.wn:hover .wt{opacity:1!important;transform:scale(1.07)!important;text-shadow:0 0 24px rgba(200,182,255,.8),0 0 50px rgba(174,227,255,.35)}
+.wn:hover .wa{opacity:1}
+@keyframes dA{0%,100%{transform:translate(0,0)}33%{transform:translate(-8px,-14px)}66%{transform:translate(7px,-9px)}}
+@keyframes dB{0%,100%{transform:translate(0,0)}33%{transform:translate(11px,-10px)}66%{transform:translate(-7px,-16px)}}
+@keyframes dC{0%,100%{transform:translate(0,0)}33%{transform:translate(-7px,-18px)}66%{transform:translate(12px,-6px)}}
+@keyframes dD{0%,100%{transform:translate(0,0)}33%{transform:translate(9px,-12px)}66%{transform:translate(-10px,-8px)}}
+.da{animation:dA 15s ease-in-out infinite}
+.db{animation:dB 12s ease-in-out infinite}
+.dc{animation:dC 17s ease-in-out infinite}
+.dd{animation:dD 13s ease-in-out infinite}
+@keyframes nodeIn{from{opacity:0;transform:translate(-50%,-50%) scale(.88)}to{transform:translate(-50%,-50%) scale(1)}}
+#emptySky{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  font-size:.9rem;font-weight:200;font-style:italic;
+  color:rgba(255,255,255,.12);letter-spacing:.08em;
+  pointer-events:none;display:none;text-align:center
+}
+
+/* ── STAR CREATION OVERLAY ── */
+#starCreate{
+  position:fixed;inset:0;z-index:500;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 38%,rgba(28,12,68,.9) 0%,rgba(3,6,26,.96) 100%);
+  opacity:0;pointer-events:none;
+  transition:opacity .8s ease
+}
+#starCreate.on{opacity:1;pointer-events:all}
+
+.sc-step{
+  position:absolute;
+  display:flex;flex-direction:column;align-items:center;
+  width:min(88vw,420px);
+  opacity:0;transform:translateY(14px);
+  transition:opacity .7s ease,transform .7s ease;
+  pointer-events:none
+}
+.sc-step.on{opacity:1;transform:translateY(0);pointer-events:all}
+.sc-step.out{opacity:0;transform:translateY(-12px)}
+
+#sc-icon{
+  font-size:1.6rem;margin-bottom:1.6rem;
+  opacity:.5;letter-spacing:.05em
+}
+#sc-title{
+  font-size:clamp(1rem,2.4vw,1.5rem);font-weight:200;font-style:italic;
+  letter-spacing:.1em;color:rgba(255,240,180,.82);
+  margin-bottom:.55rem;text-align:center
+}
+#sc-sub{
+  font-size:.68rem;font-weight:200;letter-spacing:.14em;
+  color:rgba(255,220,100,.28);font-style:italic;
+  margin-bottom:2.8rem;text-align:center
+}
+.sc-field{
+  width:100%;background:transparent;border:none;
+  border-bottom:1px solid rgba(255,220,100,.1);
+  padding:.65rem 0;margin-bottom:1.5rem;
+  font-family:'Manrope',sans-serif;font-weight:300;
+  font-size:clamp(.88rem,2.2vw,1.05rem);
+  color:rgba(255,245,200,.88);outline:none;text-align:center;
+  letter-spacing:.05em;caret-color:var(--gold);
+  transition:border-color .4s ease;resize:none;
+  display:block
+}
+.sc-field::placeholder{color:rgba(255,240,180,.14);font-style:italic}
+.sc-field:focus{border-bottom-color:rgba(255,220,100,.3)}
+#sc-msg{font-size:clamp(.8rem,1.9vw,.92rem);line-height:1.6;min-height:2.8em;overflow:hidden}
+#sc-nameErr{
+  font-size:.6rem;letter-spacing:.14em;font-style:italic;
+  color:rgba(255,150,150,.45);margin-top:-.8rem;margin-bottom:.8rem;
+  opacity:0;transition:opacity .3s;min-height:.8em
+}
+#sc-nameErr.on{opacity:1}
+#sc-place{
+  margin-top:2rem;
+  background:transparent;border:none;
+  color:rgba(255,220,100,.38);
+  font-family:'Manrope',sans-serif;font-weight:200;
+  font-size:.7rem;letter-spacing:.26em;text-transform:uppercase;
+  cursor:pointer;padding:.5rem 1rem;
+  transition:color .35s,text-shadow .35s,letter-spacing .35s
+}
+#sc-place:hover{color:rgba(255,220,100,.85);letter-spacing:.3em;text-shadow:0 0 22px rgba(255,200,60,.45)}
+#sc-cancel{
+  margin-top:1.1rem;
+  background:transparent;border:none;
+  color:rgba(255,255,255,.14);
+  font-family:'Manrope',sans-serif;font-weight:200;
+  font-size:.58rem;letter-spacing:.18em;
+  cursor:pointer;padding:.3rem .5rem;
+  transition:color .3s
+}
+#sc-cancel:hover{color:rgba(255,255,255,.36)}
+
+/* Step 2 */
+#sc-step2 .sc-creating{
+  font-size:.82rem;font-weight:200;font-style:italic;
+  letter-spacing:.14em;color:rgba(255,230,140,.38);
+  text-align:center;margin-top:1rem;
+  animation:breathe 2.2s ease-in-out infinite
+}
+@keyframes breathe{0%,100%{opacity:.3}50%{opacity:.85}}
+#sc-starName{
+  font-size:clamp(1.1rem,2.5vw,1.6rem);font-weight:200;
+  letter-spacing:.12em;color:rgba(255,245,200,.6);
+  text-align:center;
+  margin-bottom:1.4rem;
+  opacity:0;transition:opacity 1.2s ease
+}
+#sc-starName.on{opacity:1}
+
+/* ── STAR INFO POPUP ── */
+#starInfo{
+  position:fixed;z-index:400;
+  opacity:0;pointer-events:none;
+  transition:opacity .45s ease;
+  transform:translate(-50%,-110%);/* adjusted by JS */
+}
+#starInfo.on{opacity:1;pointer-events:all}
+.si-card{
+  background:rgba(8,5,26,.92);
+  border:1px solid rgba(255,220,100,.1);
+  border-radius:1px;
+  padding:1.4rem 1.8rem 1.1rem;
+  max-width:210px;min-width:150px;
+  text-align:center;
+  box-shadow:0 0 50px rgba(255,200,60,.05),0 6px 32px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,220,100,.05)
+}
+#si-name{
+  font-size:1rem;font-weight:300;letter-spacing:.09em;
+  color:rgba(255,245,200,.88);margin-bottom:.55rem
+}
+#si-msg{
+  font-size:.7rem;font-weight:200;font-style:italic;
+  letter-spacing:.05em;color:rgba(255,255,255,.34);
+  line-height:1.65;margin-bottom:.75rem;min-height:.5em
+}
+#si-credit{
+  font-size:.52rem;font-weight:200;letter-spacing:.13em;
+  color:rgba(255,220,100,.2);text-transform:uppercase;
+  margin-bottom:.8rem
+}
+#si-own{
+  font-size:.52rem;font-weight:200;letter-spacing:.12em;
+  font-style:italic;color:rgba(255,220,100,.5);
+  margin-bottom:.6rem;display:none
+}
+#si-close{
+  background:transparent;border:none;
+  color:rgba(255,255,255,.16);
+  font-family:'Manrope',sans-serif;font-weight:200;
+  font-size:.55rem;letter-spacing:.18em;
+  cursor:pointer;padding:.25rem .5rem;
+  transition:color .3s
+}
+#si-close:hover{color:rgba(255,255,255,.45)}
+
+/* ── LOADER ── */
+#loader{
+  position:fixed;inset:0;z-index:9999;
+  background:#03061a;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity 1s ease
+}
+#loader.out{opacity:0;pointer-events:none}
+.ldot{
+  width:5px;height:5px;border-radius:50%;
+  background:rgba(174,227,255,.4);
+  animation:lp 1.4s ease-in-out infinite
+}
+@keyframes lp{0%,100%{transform:scale(.7);opacity:.2}50%{transform:scale(1.5);opacity:1}}
+
+@media(max-width:480px){
+  .wt{font-size:.72rem!important;max-width:128px}
+  #ctrl{gap:1.4rem;bottom:1.3rem}
+  .cbtn{font-size:.55rem;letter-spacing:.16em}
+}
+</style>
+</head>
+<body>
+
+<div id="loader"><div class="ldot"></div></div>
+<canvas id="sky"></canvas>
+<div id="vig"></div>
+<div id="dim"></div>
+<div id="flash"></div>
+<div id="ghost"></div>
+<div id="feedback"></div>
+
+<!-- LANDING VIEW -->
+<div id="land" class="view">
+  <div id="prompt">Make a wish&hellip;</div>
+  <div id="inp-wrap">
+    <input id="wInput" type="text"
+      placeholder="What do you wish for?"
+      maxlength="100" autocomplete="off" spellcheck="false">
+    <div id="wHint">Keep it light, let it fly&hellip;</div>
+    <div id="wCount"></div>
+  </div>
+  <div id="shoot-wrap">
+    <button id="shootBtn">release into the sky &nbsp;&#10022;</button>
+  </div>
+</div>
+
+<!-- SKY OF WISHES VIEW -->
+<div id="skyV" class="view">
+  <div id="skyHdr">
+    <span id="skyTitle">Sky of Wishes &amp; Stars</span>
+    <span id="skyN"></span>
+    <span id="starN"></span>
+    <button id="findMyStarBtn">find my star ✦</button>
+  </div>
+  <div id="wishBox">
+    <p id="emptySky">The sky is empty.<br>Be the first to make a wish.</p>
+  </div>
+</div>
+
+<!-- PERSISTENT CONTROLS -->
+<div id="ctrl">
+  <button class="cbtn on" id="wBtn"><span class="cdot"></span>Make a wish</button>
+  <button class="cbtn"    id="exBtn"><span class="cdot"></span>Explore sky</button>
+  <button class="cbtn"    id="nameStarBtn"><span class="cdot"></span>Name a star</button>
+</div>
+
+<!-- STAR CREATION OVERLAY -->
+<div id="starCreate">
+  <!-- Step 1: Input -->
+  <div id="sc-step1" class="sc-step">
+    <div id="sc-icon">✦</div>
+    <div id="sc-title">Give a star to someone</div>
+    <div id="sc-sub">Their name will shine here, always.</div>
+    <input  id="sc-name" class="sc-field" type="text"
+      placeholder="Who is this star for?"
+      maxlength="40" autocomplete="off" spellcheck="false">
+    <div id="sc-nameErr">Please give them a name</div>
+    <textarea id="sc-msg" class="sc-field"
+      placeholder="What would you like to say to them? (optional)"
+      maxlength="200" rows="2"></textarea>
+    <button id="sc-place">place their star in the sky &nbsp;✦</button>
+    <button id="sc-cancel">← never mind</button>
+  </div>
+
+  <!-- Step 2: Creation animation -->
+  <div id="sc-step2" class="sc-step">
+    <div id="sc-starName"></div>
+    <div class="sc-creating">Finding the perfect spot in the sky&hellip;</div>
+  </div>
+</div>
+
+<!-- STAR INFO POPUP -->
+<div id="starInfo">
+  <div class="si-card">
+    <div id="si-name"></div>
+    <div id="si-msg"></div>
+    <div id="si-credit">Created by someone who remembers</div>
+    <div id="si-own">This star is yours</div>
+    <button id="si-close">close</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// =====================================================
+// CANVAS ENGINE
+// =====================================================
+const cv  = document.getElementById('sky');
+const ctx = cv.getContext('2d');
+let W, H;
+
+const resize = () => {
+  W = cv.width  = window.innerWidth;
+  H = cv.height = window.innerHeight;
+  buildStars();
+};
+window.addEventListener('resize', resize);
+
+const PAL = [
+  [255, 255, 255],
+  [174, 227, 255],
+  [200, 182, 255],
+  [220, 235, 255],
+  [240, 232, 255],
+];
+const GOLD_PAL = [255, 232, 130];
+
+let stars = [];
+const buildStars = () => {
+  stars = [];
+  const n = Math.min(Math.floor(W * H / 4600), 300);
+  for (let i = 0; i < n; i++) {
+    const w = Math.random();
+    stars.push({
+      x:   Math.random() * W,
+      y:   Math.random() * H,
+      r:   Math.random() ** 2.4 * 1.85 + 0.1,
+      base:Math.random() * 0.5  + 0.1,
+      ts:  Math.random() * 0.011 + 0.003,
+      tp:  Math.random() * Math.PI * 2,
+      ta:  Math.random() * 0.26  + 0.07,
+      lay: Math.random(),
+      ci:  w > .55 ? 0 : w > .38 ? 1 : w > .24 ? 2 : 3,
+    });
+  }
+};
+
+// ── Cursor parallax ───────────────────────────────
+let tPX = 0, tPY = 0, cPX = 0, cPY = 0;
+document.addEventListener('mousemove', e => {
+  tPX = (e.clientX / W - 0.5) * 15;
+  tPY = (e.clientY / H - 0.5) * 10;
+}, { passive: true });
+
+// ── Shooting stars ────────────────────────────────
+let shooters = [];
+let nextAmb  = 0;
+
+const spawnShooter = (opts = {}) => {
+  const iw  = opts.isWish || false;
+  const ci  = Math.floor(Math.random() * PAL.length);
+  const x   = opts.x  ?? (Math.random() * W * 0.75 + W * 0.1);
+  const y   = opts.y  ?? (Math.random() * H * 0.48);
+  const ang = (10 + Math.random() * 52) * Math.PI / 180;
+  const sgn = Math.random() > 0.32 ? 1 : -1;
+  const spd = iw ? 10 + Math.random() * 10 : 4 + Math.random() * 5;
+  shooters.push({
+    x, y,
+    vx: Math.cos(ang) * spd * sgn,
+    vy: Math.sin(ang) * spd,
+    trail: [], tMax: iw ? 42 : 26,
+    ci, life: 0, mL: iw ? 108 : 78,
+    gr: iw ? 18 : 9, hr: iw ? 2.8 : 1.7, iw,
+  });
+};
+
+const spawnBurst = () => {
+  const n = 7 + Math.floor(Math.random() * 4);
+  for (let i = 0; i < n; i++)
+    setTimeout(() => spawnShooter({ isWish: true }), i * 88 + Math.random() * 50);
+};
+
+// ── Typing particles ──────────────────────────────
+let tParts  = [];
+let lastTPT = 0;
+
+const spawnTP = () => {
+  const el = document.getElementById('wInput');
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  for (let i = 0; i < 3; i++) {
+    const ci = Math.random() < .45 ? 0 : Math.random() < .5 ? 1 : 2;
+    tParts.push({
+      x:  r.left + r.width * .5 + (Math.random() - .5) * r.width * .65,
+      y:  r.top + (Math.random() - .5) * 10,
+      vx: (Math.random() - .5) * 1.5,
+      vy: -(0.65 + Math.random() * 1.4),
+      r:  0.8 + Math.random() * 1.5,
+      life: 0, mL: 44 + Math.floor(Math.random() * 28), ci,
+    });
+  }
+};
+
+// ── Named Stars ───────────────────────────────────
+let namedStars   = [];
+let findRipples  = [];        // {x,y,radius,life,maxLife}
+let highlightIds = new Set(); // ids of "my" stars
+let creatingAnim = null;      // star birth animation
+
+// ── Main render loop ──────────────────────────────
+let rafT = 0;
+
+const animate = now => {
+  requestAnimationFrame(animate);
+  rafT = now * 0.001;
+
+  cPX += (tPX - cPX) * 0.042;
+  cPY += (tPY - cPY) * 0.042;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Deep sky gradient
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0,    '#03061a');
+  bg.addColorStop(0.28, '#06092a');
+  bg.addColorStop(0.58, '#0c0720');
+  bg.addColorStop(1,    '#170a30');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+  // Pulsating horizon glow
+  const p1 = Math.sin(rafT * 0.27) * 0.038 + 0.082;
+  const h1 = ctx.createRadialGradient(W*.5, H*.8, 0, W*.5, H*.8, H*.58);
+  h1.addColorStop(0,   `rgba(72,42,148,${p1})`);
+  h1.addColorStop(.5,  `rgba(42,24,96,${p1*.38})`);
+  h1.addColorStop(1,   'transparent');
+  ctx.fillStyle = h1; ctx.fillRect(0, 0, W, H);
+
+  const p2 = Math.sin(rafT * 0.18 + 1.7) * 0.022 + 0.038;
+  const h2 = ctx.createRadialGradient(W*.3, H*.84, 0, W*.3, H*.84, H*.44);
+  h2.addColorStop(0,   `rgba(50,32,128,${p2})`);
+  h2.addColorStop(1,   'transparent');
+  ctx.fillStyle = h2; ctx.fillRect(0, 0, W, H);
+
+  // Twinkling background stars with parallax
+  for (const s of stars) {
+    const a = Math.max(.02, Math.min(1,
+      s.base + Math.sin(rafT * s.ts * 60 + s.tp) * s.ta
+    ));
+    const c = PAL[s.ci];
+    ctx.beginPath();
+    ctx.arc(s.x + cPX * s.lay, s.y + cPY * s.lay, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+    ctx.fill();
+  }
+
+  // ── Named Stars ───────────────────────────────
+  for (const ns of namedStars) {
+    const px = (ns.x / 100) * W + cPX * 0.28;
+    const py = (ns.y / 100) * H + cPY * 0.28;
+    const pulse = (Math.sin(rafT * 1.15 + ns.phase) * 0.5 + 0.5); // 0-1
+    const isMine = highlightIds.has(ns.id);
+    const glowMul = isMine ? 1.8 : 1;
+
+    // Outer aura
+    const auraR = (14 + pulse * 10) * glowMul;
+    const aura  = ctx.createRadialGradient(px, py, 0, px, py, auraR);
+    aura.addColorStop(0,  `rgba(255,230,130,${(0.1 + pulse * 0.12) * glowMul})`);
+    aura.addColorStop(.5, `rgba(255,210,90,${0.04 * glowMul})`);
+    aura.addColorStop(1,  'transparent');
+    ctx.fillStyle = aura;
+    ctx.beginPath(); ctx.arc(px, py, auraR, 0, Math.PI * 2); ctx.fill();
+
+    // Inner glow
+    const innerR = (5 + pulse * 4) * (isMine ? 1.4 : 1);
+    const inner  = ctx.createRadialGradient(px, py, 0, px, py, innerR);
+    inner.addColorStop(0, `rgba(255,248,210,${0.4 + pulse * 0.35})`);
+    inner.addColorStop(1, `rgba(255,210,90,0)`);
+    ctx.fillStyle = inner;
+    ctx.beginPath(); ctx.arc(px, py, innerR, 0, Math.PI * 2); ctx.fill();
+
+    // Core dot
+    const coreR = 1.4 + pulse * 0.7 + (isMine ? 0.6 : 0);
+    ctx.beginPath(); ctx.arc(px, py, coreR, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,252,220,${0.72 + pulse * 0.28})`; ctx.fill();
+
+    // ─ Name label ─
+    const labelAlpha = 0.22 + pulse * 0.12 + (isMine ? 0.25 : 0);
+    ctx.font = `200 ${isMine ? '11px' : '10px'} Manrope, sans-serif`;
+    ctx.letterSpacing = '0.08em';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = `rgba(255,240,170,${labelAlpha})`;
+    ctx.fillText(ns.name, px + coreR + 8, py + 3.5);
+    ctx.letterSpacing = '0';
+  }
+
+  // ── Find ripples ──────────────────────────────
+  for (let i = findRipples.length - 1; i >= 0; i--) {
+    const r = findRipples[i];
+    r.radius += 1.2;
+    r.life++;
+    const a = Math.max(0, (1 - r.life / r.maxLife)) * 0.65;
+    ctx.beginPath();
+    ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(255,220,90,${a})`;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    if (r.life >= r.maxLife) findRipples.splice(i, 1);
+  }
+
+  // ── Star birth animation ──────────────────────
+  if (creatingAnim) {
+    const ca = creatingAnim;
+    ca.life++;
+    const t = Math.min(1, ca.life / ca.maxLife);
+    const eased = 1 - Math.pow(1 - t, 3);
+    const px = (ca.x / 100) * W;
+    const py = (ca.y / 100) * H;
+
+    // Growing aura
+    const birthR = eased * 40;
+    const birthG = ctx.createRadialGradient(px, py, 0, px, py, birthR);
+    birthG.addColorStop(0,   `rgba(255,245,180,${eased * 0.5})`);
+    birthG.addColorStop(.4,  `rgba(255,220,100,${eased * 0.18})`);
+    birthG.addColorStop(1,   'transparent');
+    ctx.fillStyle = birthG;
+    ctx.beginPath(); ctx.arc(px, py, birthR, 0, Math.PI * 2); ctx.fill();
+
+    // Core
+    ctx.beginPath(); ctx.arc(px, py, eased * 2.8, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,252,220,${eased * 0.9})`; ctx.fill();
+
+    if (t >= 1) {
+      // Commit to permanent named stars
+      namedStars.push({ ...ca.starData, phase: Math.random() * Math.PI * 2 });
+      creatingAnim = null;
+      // Fire 3 gentle shooting stars from its position
+      for (let k = 0; k < 3; k++)
+        setTimeout(() => spawnShooter({ x: px, y: py, isWish: false }), k * 220);
+      // Close overlay and reveal
+      setTimeout(finishStarCreation, 600);
+    }
+  }
+
+  // Ambient shooter every 10–18s
+  if (now > nextAmb) {
+    spawnShooter();
+    nextAmb = now + 10000 + Math.random() * 8500;
+  }
+
+  // Draw shooters
+  for (let i = shooters.length - 1; i >= 0; i--) {
+    const s = shooters[i];
+    s.trail.push({ x: s.x, y: s.y });
+    if (s.trail.length > s.tMax) s.trail.shift();
+    s.x += s.vx; s.y += s.vy; s.life++;
+    if (s.life > s.mL || s.x < -320 || s.x > W + 320 || s.y > H + 100) {
+      shooters.splice(i, 1); continue;
+    }
+    if (s.trail.length < 2) continue;
+    const lr = s.life / s.mL;
+    const a  = lr < .12 ? lr / .12 : lr > .7 ? 1 - (lr - .7) / .3 : 1;
+    const c  = PAL[s.ci];
+    for (let j = 1; j < s.trail.length; j++) {
+      const t0 = s.trail[j - 1], t1 = s.trail[j];
+      ctx.beginPath(); ctx.moveTo(t0.x, t0.y); ctx.lineTo(t1.x, t1.y);
+      ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${(j / s.trail.length) * a * .78})`;
+      ctx.lineWidth = (j / s.trail.length) * s.hr * .9;
+      ctx.lineCap = 'round'; ctx.stroke();
+    }
+    const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.gr * 2.6);
+    g.addColorStop(0,  `rgba(${c[0]},${c[1]},${c[2]},${a * .92})`);
+    g.addColorStop(.4, `rgba(${c[0]},${c[1]},${c[2]},${a * .3})`);
+    g.addColorStop(1,  `rgba(${c[0]},${c[1]},${c[2]},0)`);
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.gr * 2.6, 0, Math.PI * 2);
+    ctx.fillStyle = g; ctx.fill();
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.hr, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${a})`; ctx.fill();
+  }
+
+  // Typing particles
+  for (let i = tParts.length - 1; i >= 0; i--) {
+    const p = tParts[i];
+    const a = (1 - p.life / p.mL) * .84;
+    const c = PAL[p.ci];
+    ctx.beginPath();
+    ctx.arc(p.x + p.vx * p.life, p.y + p.vy * p.life, p.r * (1 - p.life / p.mL * .4), 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${a})`; ctx.fill();
+    p.life++;
+    if (p.life >= p.mL) tParts.splice(i, 1);
+  }
+};
+requestAnimationFrame(animate);
+
+// =====================================================
+// STORAGE  —  localStorage with in-memory fallback
+// =====================================================
+const WFX     = 'sw3:w:';
+const SFX     = 'sw3:s:';
+const UID_KEY = 'sw3:uid';
+const MEM     = {};   // in-memory fallback when localStorage is blocked
+
+// Thin synchronous wrapper so the rest of the code stays async-friendly
+const LS = {
+  get(key) {
+    try { const v = localStorage.getItem(key); return v ? { value: v } : null; }
+    catch { return MEM[key] ? { value: MEM[key] } : null; }
+  },
+  set(key, val) {
+    try { localStorage.setItem(key, val); }
+    catch { MEM[key] = val; }
+    return { value: val };
+  },
+  list(prefix) {
+    try {
+      return { keys: Object.keys(localStorage).filter(k => k.startsWith(prefix)) };
+    } catch {
+      return { keys: Object.keys(MEM).filter(k => k.startsWith(prefix)) };
+    }
+  }
+};
+
+let ANON_ID = '';
+
+const initUID = () => {
+  const r = LS.get(UID_KEY);
+  if (r?.value) { ANON_ID = r.value; return; }
+  ANON_ID = Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
+  LS.set(UID_KEY, ANON_ID);
+};
+
+const saveWish = text => {
+  const id  = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  const ci  = Math.floor(Math.random() * PAL.length);
+  LS.set(WFX + id, JSON.stringify({ text: text.trim(), id, ts: Date.now(), ci, uid: ANON_ID }));
+};
+
+const loadWishes = () => {
+  const { keys } = LS.list(WFX);
+  return keys
+    .map(k => { try { return JSON.parse(LS.get(k)?.value); } catch { return null; } })
+    .filter(Boolean)
+    .sort((a, b) => b.ts - a.ts);
+};
+
+const saveNamedStar = (name, message, x, y) => {
+  const id  = 'star_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  const obj = { id, name: name.trim(), message: message.trim(), x, y, ts: Date.now(), uid: ANON_ID };
+  LS.set(SFX + id, JSON.stringify(obj));
+  return obj;
+};
+
+const loadNamedStars = () => {
+  const { keys } = LS.list(SFX);
+  return keys
+    .map(k => { try { return JSON.parse(LS.get(k)?.value); } catch { return null; } })
+    .filter(Boolean);
+};
+
+// =====================================================
+// ENTRY SEQUENCE
+// =====================================================
+const wInput   = document.getElementById('wInput');
+const promptEl = document.getElementById('prompt');
+const inpWrap  = document.getElementById('inp-wrap');
+const shootWrp = document.getElementById('shoot-wrap');
+const ctrlDiv  = document.getElementById('ctrl');
+
+const entry = () => {
+  setTimeout(() => promptEl.classList.add('up'),    900);
+  setTimeout(() => inpWrap.classList.add('up'),    1800);
+  setTimeout(() => { shootWrp.classList.add('up'); wInput.focus(); }, 2550);
+  setTimeout(() => ctrlDiv.classList.add('up'), 3100);
+};
+
+// =====================================================
+// INPUT GLOW + PARTICLES
+// =====================================================
+const wHint  = document.getElementById('wHint');
+const wCount = document.getElementById('wCount');
+
+wInput.addEventListener('input', () => {
+  const len = wInput.value.length;
+  wCount.textContent = len > 62 ? `${100 - len} left` : '';
+  wCount.classList.toggle('warn', len > 83);
+  wHint.classList.toggle('on', len >= 96);
+  if (len > 0) {
+    const t = Math.min(len / 72, 1);
+    const gS = 6 + t * 34, gA = 0.06 + t * 0.24;
+    wInput.style.textShadow =
+      `0 0 ${gS}px rgba(174,227,255,${gA}),0 0 ${gS * 1.9}px rgba(200,182,255,${gA * .45})`;
+    const now = Date.now();
+    if (now - lastTPT > 55) { spawnTP(); lastTPT = now; }
+  } else { wInput.style.textShadow = ''; }
+});
+
+// =====================================================
+// SHOOT SEQUENCE
+// =====================================================
+const ghost      = document.getElementById('ghost');
+const flashEl    = document.getElementById('flash');
+const dimEl      = document.getElementById('dim');
+const feedbackEl = document.getElementById('feedback');
+let   lastShot   = 0;
+const COOL       = 12000;
+
+const showFB = (msg, ms = 3800) => {
+  feedbackEl.textContent = msg;
+  feedbackEl.classList.add('on');
+  setTimeout(() => feedbackEl.classList.remove('on'), ms);
+};
+
+const handleShoot = () => {
+  const txt = wInput.value.trim();
+  if (!txt) {
+    wInput.classList.remove('shake'); void wInput.offsetWidth; wInput.classList.add('shake');
+    setTimeout(() => wInput.classList.remove('shake'), 350);
+    return;
+  }
+  const now = Date.now();
+  if (now - lastShot < COOL) { showFB(`Wait ${Math.ceil((COOL - (now - lastShot)) / 1000)}s before your next wish`); return; }
+  lastShot = now;
+  const saved = txt;
+  wInput.value = '';
+  wInput.style.textShadow = '';
+  wCount.textContent = '';
+  wHint.classList.remove('on');
+  const rect = wInput.getBoundingClientRect();
+  ghost.textContent = saved;
+  ghost.style.top   = rect.top + 'px';
+  ghost.classList.remove('fly'); void ghost.offsetWidth; ghost.classList.add('fly');
+  dimEl.classList.add('on');
+  setTimeout(() => {
+    flashEl.classList.remove('pop'); void flashEl.offsetWidth; flashEl.classList.add('pop');
+    spawnBurst();
+  }, 1050);
+  setTimeout(() => dimEl.classList.remove('on'), 1250);
+  setTimeout(() => { ghost.classList.remove('fly'); ghost.textContent = ''; }, 1700);
+  showFB('Your wish is flying through the universe\u2026', 4500);
+  saveWish(saved);
+};
+
+document.getElementById('shootBtn').addEventListener('click', handleShoot);
+wInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleShoot(); });
+
+// =====================================================
+// ANONYMIZATION
+// =====================================================
+const ALIASES = [
+  'Someone','A stranger','A dreamer','A wanderer',
+  'A soul','A heart somewhere','Someone out there','A voice in the dark',
+];
+const anon = ts => {
+  const d = Date.now() - ts, m = Math.floor(d/60000), h = Math.floor(m/60), dy = Math.floor(h/24);
+  const n = ALIASES[Math.floor(Math.random() * ALIASES.length)];
+  if (dy > 0) return `${n}, ${dy}d ago`;
+  if (h  > 0) return `${n}, ${h}h ago`;
+  if (m  > 1) return `${n}, ${m}m ago`;
+  if (m === 1) return `${n}, a minute ago`;
+  return `${n}, just now`;
+};
+
+// =====================================================
+// SKY OF WISHES
+// =====================================================
+const DRIFTS = ['da','db','dc','dd'];
+
+const genPositions = count => {
+  const pos = [];
+  const MD  = 145;
+  for (let i = 0; i < count; i++) {
+    let x, y, ok = false, att = 0;
+    while (!ok && att < 22) {
+      x = 7  + Math.random() * 86;
+      y = 17 + Math.random() * 73;
+      ok = true;
+      for (const p of pos) {
+        const dx = (x - p.x) * W / 100, dy = (y - p.y) * H / 100;
+        if (Math.sqrt(dx*dx + dy*dy) < MD) { ok = false; break; }
+      }
+      att++;
+    }
+    pos.push({ x, y });
+  }
+  return pos;
+};
+
+let skyNodes = [];
+
+const buildSky = () => {
+  const box   = document.getElementById('wishBox');
+  const empty = document.getElementById('emptySky');
+  box.querySelectorAll('.wn').forEach(n => n.remove());
+  skyNodes = [];
+
+  const wishes     = loadWishes();
+  const stars_data = loadNamedStars();
+
+  // Update named stars on canvas
+  namedStars = stars_data.map(s => ({ ...s, phase: Math.random() * Math.PI * 2 }));
+  highlightIds = new Set(stars_data.filter(s => s.uid === ANON_ID).map(s => s.id));
+
+  document.getElementById('skyN').textContent = wishes.length ? `${wishes.length} wish${wishes.length > 1 ? 'es' : ''}` : '';
+  document.getElementById('starN').textContent = namedStars.length ? `${namedStars.length} star${namedStars.length > 1 ? 's' : ''} named` : '';
+
+  if (!wishes.length) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  const pos = genPositions(wishes.length);
+  wishes.forEach((w, i) => {
+    const delay  = (0.06 + i * 0.055).toFixed(2);
+    const age    = Date.now() - w.ts;
+    const baseOp = age < 300000 ? 0.38 : age < 3600000 ? 0.26 : age < 86400000 ? 0.2 : 0.14;
+    const fs     = w.text.length < 22 ? '0.92rem' : w.text.length < 52 ? '0.82rem' : '0.73rem';
+
+    const node = document.createElement('div');
+    node.className = `wn ${DRIFTS[i % 4]}`;
+    node.style.cssText = [`left:${pos[i].x}%`,`top:${pos[i].y}%`,`animation:nodeIn 1s ease ${delay}s forwards`,`opacity:0`].join(';');
+    const tw = document.createElement('div');
+    tw.className = 'wt';
+    tw.style.opacity = baseOp;
+    tw.style.fontSize = fs;
+    tw.textContent = `\u201c${w.text}\u201d`;
+    const wa = document.createElement('span');
+    wa.className = 'wa';
+    wa.textContent = anon(w.ts);
+    tw.appendChild(wa);
+    node.appendChild(tw);
+    box.appendChild(node);
+    node.addEventListener('click', () => {
+      const r = node.getBoundingClientRect();
+      spawnShooter({ isWish: true, x: r.left + r.width * .5, y: r.top + r.height * .4 });
+    });
+    skyNodes.push(node);
+  });
+
+  // Periodic random wish shooting star
+  const randShoot = () => {
+    if (!document.getElementById('skyV').classList.contains('on')) return;
+    if (skyNodes.length) {
+      const n = skyNodes[Math.floor(Math.random() * skyNodes.length)];
+      const r = n.getBoundingClientRect();
+      spawnShooter({ isWish: true, x: r.left + r.width * .5, y: r.top + r.height * .35 });
+    }
+    setTimeout(randShoot, 5500 + Math.random() * 9500);
+  };
+  setTimeout(randShoot, 3800);
+};
+
+// =====================================================
+// STAR INFO POPUP
+// =====================================================
+const starInfoEl = document.getElementById('starInfo');
+let starInfoOpen = false;
+
+const showStarInfo = (ns, screenX, screenY) => {
+  document.getElementById('si-name').textContent = ns.name;
+  document.getElementById('si-msg').textContent  = ns.message || '';
+  document.getElementById('si-msg').style.display = ns.message ? 'block' : 'none';
+  const ownEl = document.getElementById('si-own');
+  ownEl.style.display = (ns.uid === ANON_ID) ? 'block' : 'none';
+  // Position popup
+  const px = Math.min(Math.max(screenX, 120), W - 120);
+  const py = Math.max(screenY - 10, 120);
+  starInfoEl.style.left = px + 'px';
+  starInfoEl.style.top  = py + 'px';
+  starInfoEl.style.transform = 'translate(-50%, -100%)';
+  starInfoEl.classList.add('on');
+  starInfoOpen = true;
+};
+
+const hideStarInfo = () => {
+  starInfoEl.classList.remove('on');
+  starInfoOpen = false;
+};
+
+document.getElementById('si-close').addEventListener('click', hideStarInfo);
+
+// Canvas click: detect named stars
+cv.addEventListener('click', e => {
+  if (starInfoOpen) { hideStarInfo(); return; }
+  const mx = e.clientX, my = e.clientY;
+  let hit = null, minDist = 28;
+  for (const ns of namedStars) {
+    const px = (ns.x / 100) * W + cPX * 0.28;
+    const py = (ns.y / 100) * H + cPY * 0.28;
+    const d  = Math.sqrt((mx - px) ** 2 + (my - py) ** 2);
+    if (d < minDist) { minDist = d; hit = ns; }
+  }
+  if (hit) showStarInfo(hit, mx, my);
+});
+
+// =====================================================
+// "FIND MY STAR"
+// =====================================================
+document.getElementById('findMyStarBtn').addEventListener('click', () => {
+  const myStars = namedStars.filter(ns => ns.uid === ANON_ID);
+  if (!myStars.length) {
+    showFB('You haven\'t named a star yet\u2026', 3200);
+    return;
+  }
+  hideStarInfo();
+  // Spawn ripples around each of the user's stars
+  for (const ns of myStars) {
+    const px = (ns.x / 100) * W;
+    const py = (ns.y / 100) * H;
+    for (let k = 0; k < 3; k++) {
+      setTimeout(() => {
+        for (let r = 0; r < 2; r++)
+          findRipples.push({ x: px, y: py, radius: 4 + r * 6, life: 0, maxLife: 55 + r * 15 });
+      }, k * 280);
+    }
+  }
+  // Pan-hint: brief camera shift toward the centroid of "my stars"
+  const cx = myStars.reduce((s, ns) => s + ns.x, 0) / myStars.length;
+  const cy = myStars.reduce((s, ns) => s + ns.y, 0) / myStars.length;
+  const dx = (cx / 100 - 0.5) * -18;
+  const dy = (cy / 100 - 0.5) * -12;
+  // Temporarily bias parallax toward the star(s)
+  const origPX = tPX, origPY = tPY;
+  tPX = dx; tPY = dy;
+  setTimeout(() => { tPX = origPX; tPY = origPY; }, 2200);
+  showFB(myStars.length === 1 ? `Your star is glowing for you\u2026` : `Your stars are glowing\u2026`, 3500);
+});
+
+// =====================================================
+// STAR CREATION FLOW
+// =====================================================
+const starCreateEl = document.getElementById('starCreate');
+const scStep1      = document.getElementById('sc-step1');
+const scStep2      = document.getElementById('sc-step2');
+const scNameEl     = document.getElementById('sc-name');
+const scMsgEl      = document.getElementById('sc-msg');
+const scNameErr    = document.getElementById('sc-nameErr');
+const scStarNameEl = document.getElementById('sc-starName');
+
+const genStarPos = () => {
+  // Avoid edges and where named stars already exist
+  let best = null, bestDist = 0;
+  for (let attempt = 0; attempt < 30; attempt++) {
+    const x = 10 + Math.random() * 80;
+    const y = 10 + Math.random() * 72;
+    let minD = Infinity;
+    for (const ns of namedStars) {
+      const d = Math.sqrt((x - ns.x)**2 + (y - ns.y)**2);
+      if (d < minD) minD = d;
+    }
+    if (minD > bestDist) { bestDist = minD; best = { x, y }; }
+  }
+  return best || { x: 15 + Math.random() * 70, y: 15 + Math.random() * 65 };
+};
+
+const openStarCreate = () => {
+  scNameEl.value = '';
+  scMsgEl.value  = '';
+  scNameErr.classList.remove('on');
+  scStep1.classList.add('on');
+  scStep2.classList.remove('on');
+  starCreateEl.classList.add('on');
+  setTimeout(() => scNameEl.focus(), 500);
+};
+
+const closeStarCreate = () => {
+  scStep1.classList.remove('on');
+  scStep2.classList.remove('on');
+  starCreateEl.classList.remove('on');
+};
+
+const finishStarCreation = () => {
+  closeStarCreate();
+  // If in sky view, rebuild. Otherwise just show feedback.
+  const isInSky = document.getElementById('skyV').classList.contains('on');
+  if (isInSky) {
+    document.getElementById('starN').textContent =
+      `${namedStars.length} star${namedStars.length !== 1 ? 's' : ''} named`;
+    highlightIds = new Set(namedStars.filter(s => s.uid === ANON_ID).map(s => s.id));
+  }
+};
+
+document.getElementById('sc-cancel').addEventListener('click', closeStarCreate);
+
+document.getElementById('sc-place').addEventListener('click', () => {
+  const name = scNameEl.value.trim();
+  if (!name) {
+    scNameErr.classList.add('on');
+    scNameEl.classList.remove('shake'); void scNameEl.offsetWidth; scNameEl.classList.add('shake');
+    setTimeout(() => { scNameEl.classList.remove('shake'); scNameErr.classList.remove('on'); }, 1800);
+    return;
+  }
+  const message = scMsgEl.value.trim();
+  const pos = genStarPos();
+
+  // Transition to step 2
+  scStep1.classList.add('out');
+  setTimeout(() => { scStep1.classList.remove('on','out'); scStep2.classList.add('on'); }, 500);
+
+  scStarNameEl.textContent = name;
+  setTimeout(() => scStarNameEl.classList.add('on'), 700);
+
+  // Save to storage
+  const starData = saveNamedStar(name, message, pos.x, pos.y);
+
+  // Fire birth animation after a moment of suspense
+  setTimeout(() => {
+    creatingAnim = {
+      x: pos.x, y: pos.y,
+      life: 0, maxLife: 90,
+      starData: { ...starData, phase: 0 },
+    };
+  }, 1400);
+
+  // If currently on sky view, dim slightly for the ceremony
+  const isInSky = document.getElementById('skyV').classList.contains('on');
+  if (isInSky) {
+    dimEl.classList.add('on');
+    setTimeout(() => dimEl.classList.remove('on'), 2800);
+  }
+});
+
+// Textarea auto-resize
+scMsgEl.addEventListener('input', () => {
+  scMsgEl.style.height = 'auto';
+  scMsgEl.style.height = scMsgEl.scrollHeight + 'px';
+});
+
+// Enter in name field moves to message
+scNameEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); scMsgEl.focus(); }
+});
+
+// =====================================================
+// VIEW SWITCHING
+// =====================================================
+const landEl = document.getElementById('land');
+const skyEl  = document.getElementById('skyV');
+const wBtn   = document.getElementById('wBtn');
+const exBtn  = document.getElementById('exBtn');
+const nsBtn  = document.getElementById('nameStarBtn');
+
+wBtn.addEventListener('click', () => {
+  if (landEl.classList.contains('on')) return;
+  skyEl.classList.remove('on');
+  landEl.classList.add('on');
+  wBtn.classList.add('on');
+  exBtn.classList.remove('on');
+  nsBtn.classList.remove('on');
+  hideStarInfo();
+  setTimeout(() => wInput.focus(), 400);
+});
+
+exBtn.addEventListener('click', () => {
+  if (skyEl.classList.contains('on')) return;
+  landEl.classList.remove('on');
+  skyEl.classList.add('on');
+  wBtn.classList.remove('on');
+  exBtn.classList.add('on');
+  nsBtn.classList.remove('on');
+  buildSky();
+});
+
+nsBtn.addEventListener('click', () => {
+  nsBtn.classList.add('on');
+  setTimeout(() => nsBtn.classList.remove('on'), 200);
+  openStarCreate();
+});
+
+// =====================================================
+// BOOT
+// =====================================================
+const loader = document.getElementById('loader');
+resize();
+
+initUID();
+
+// Pre-load named stars so they render immediately on canvas
+const _bootStars = loadNamedStars();
+namedStars   = _bootStars.map(s => ({ ...s, phase: Math.random() * Math.PI * 2 }));
+highlightIds = new Set(_bootStars.filter(s => s.uid === ANON_ID).map(s => s.id));
+
+setTimeout(() => {
+  loader.classList.add('out');
+  setTimeout(() => loader.remove(), 1100);
+  landEl.classList.add('on');
+  entry();
+}, 900);
+</script>
+</body>
+</html>
