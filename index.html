@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My AI Workflow Guide</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Grid paper background -->
+  <div id="grid-bg"></div>
+
+  <!-- Decorative doodle marks -->
+  <span class="deco" style="left:7%;  top:28%; animation-duration:11s">✦</span>
+  <span class="deco" style="left:91%; top:18%; animation-duration:7s; animation-direction:reverse">✦</span>
+  <span class="deco" style="left:14%; top:68%; animation-duration:13s">+</span>
+  <span class="deco" style="left:82%; top:62%; animation-duration:9s">×</span>
+  <span class="deco" style="left:50%; top:14%; animation-duration:6s">*</span>
+
+  <!-- Page title -->
+  <div id="game-title">
+    <h1>My AI Workflow Guide</h1>
+    <p>Interactive Guide to How I Use AI</p>
+  </div>
+
+  <!-- Floating info boxes -->
+  <div class="fbox" id="b0" style="left:5%;  top:20%"><span>🤖</span> How I Use AI in My Workflow</div>
+  <div class="fbox" id="b1" style="left:41%; top:27%"><span>💬</span> How I Prefer AI to Assist Me</div>
+  <div class="fbox" id="b2" style="left:64%; top:18%"><span>⚡</span> What AI Skills I Want to Improve</div>
+  <div class="fbox" id="b3" style="left:27%; top:37%"><span>🎮</span> My Fun AI Habits</div>
+
+  <!-- Character & world -->
+  <div id="shadow"></div>
+  <img id="charimg" src="" alt="character">
+  <div id="posbar">Position: 50% | Idle</div>
+  <div id="ground"></div>
+
+  <!-- On-screen controls -->
+  <div id="ctrls">
+    <button class="btn" id="lbtn">← MOVE</button>
+    <button class="btn" id="jumpbtn">🕹 JUMP!</button>
+    <button class="btn" id="rbtn">MOVE →</button>
+  </div>
+  <div id="hint">Hold A/← &middot; Hold D/→ &middot; SPACE (Jump) &middot; ESC (Close)</div>
+
+  <!-- Popup modal -->
+  <div id="overlay">
+    <div id="popup">
+      <div id="pbar"></div>
+      <div id="phdr">
+        <div id="ptitle"></div>
+        <button id="pclose">✕ CLOSE</button>
+      </div>
+      <div id="pbody"></div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
